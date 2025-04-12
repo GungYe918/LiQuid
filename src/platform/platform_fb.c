@@ -10,18 +10,19 @@
 #include <stdint.h>
 
 #include <platform/platform.h>
+#include "../liquid_internal.h"  // <- 해상도 정의 가져오기
 
 static int fb_fd = -1;
 static struct fb_var_screeninfo vinfo;
 static struct fb_fix_screeninfo finfo;
 static uint8_t* fb_ptr = NULL;
 static int fb_size = 0;
-static int screen_width = 0;
-static int screen_height = 0;
 static int bytes_per_pixel = 0;
 
 bool platform_init(int w, int h, const char* title) {
-    (void)w; (void)h; (void)title;
+    (void)w;
+    (void)h;
+    (void)title;
 
     fb_fd = open("/dev/fb0", O_RDWR);
     if (fb_fd == -1) {
@@ -39,8 +40,6 @@ bool platform_init(int w, int h, const char* title) {
         return false;
     }
 
-    screen_width = vinfo.xres;
-    screen_height = vinfo.yres;
     bytes_per_pixel = vinfo.bits_per_pixel / 8;
     fb_size = finfo.line_length * vinfo.yres;
 
@@ -55,7 +54,7 @@ bool platform_init(int w, int h, const char* title) {
         return false;
     }
 
-    printf("Framebuffer initialized: %dx%d, %dbpp\n", screen_width, screen_height, vinfo.bits_per_pixel);
+    printf("Framebuffer initialized: %dx%d, %dbpp\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel);
     return true;
 }
 
@@ -70,21 +69,22 @@ void platform_shutdown() {
     }
 }
 
-void platform_draw(const uint32_t* framebuffer) {
-    if (!fb_ptr || !framebuffer) return;
+void platform_draw(const uint32_t* framebuffer_input) {
+    if (!fb_ptr || !framebuffer_input) return;
 
-    for (int y = 0; y < screen_height; ++y) {
+    int x, y;
+    for (y = 0; y < LIQUID_HEIGHT; ++y) {
         uint8_t* dst = fb_ptr + y * finfo.line_length;
-        const uint32_t* src = framebuffer + y * screen_width;
+        const uint32_t* src = framebuffer_input + y * LIQUID_WIDTH;
 
-        for (int x = 0; x < screen_width; ++x) {
+        for (x = 0; x < LIQUID_WIDTH; ++x) {
             uint32_t pixel = src[x];
 
             if (bytes_per_pixel == 4) {
-                dst[x * 4 + 0] = pixel & 0xFF;        // Blue
-                dst[x * 4 + 1] = (pixel >> 8) & 0xFF; // Green
-                dst[x * 4 + 2] = (pixel >> 16) & 0xFF;// Red
-                dst[x * 4 + 3] = 0xFF;               // Alpha (ignored)
+                dst[x * 4 + 0] = pixel & 0xFF;        // B
+                dst[x * 4 + 1] = (pixel >> 8) & 0xFF; // G
+                dst[x * 4 + 2] = (pixel >> 16) & 0xFF;// R
+                dst[x * 4 + 3] = 0xFF;                // A
             } else if (bytes_per_pixel == 2) {
                 // RGB565로 변환
                 uint16_t r = (pixel >> 19) & 0x1F;
@@ -99,5 +99,5 @@ void platform_draw(const uint32_t* framebuffer) {
 
 bool platform_poll_event(LiquidEvent* event) {
     event->type = LIQUID_EVENT_NONE;
-    return false; // 향후 evdev 입력 처리 예정
+    return false; // 향후 evdev로 입력 구현 가능
 }
