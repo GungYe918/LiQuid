@@ -1,9 +1,11 @@
-#include "platform.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <stdio.h>
+
+#include <platform/platform.h>
 
 static Display* display = NULL;
 static Window window;

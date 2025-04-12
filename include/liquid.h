@@ -8,4 +8,5 @@
 #include "liquid_graphics.h"
 #include "liquid_event.h"
 #include "liquid_path.h"
+#include "canvas.h"
 

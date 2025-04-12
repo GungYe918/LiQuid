@@ -1,2 +1,0 @@
-# Liquid
-Liquid Graphic Library

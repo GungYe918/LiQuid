@@ -2,21 +2,26 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-int main(void) {
-    liquid_init(800, 600, "Curve test");
+#include <platform/platform_switch.h>
 
-    LiquidPath* path = liquidPathCreate();
-    liquidPathMoveTo(path, 100, 300);
-    liquidPathQuadraticTo(path, 400, 100, 700, 300);
+int main(void) {
+    liquid_init(800, 600, "Canvas test");
 
     for (int i = 0; i < 600; ++i) {
         liquidClear(0x00112233);
-        liquidPathStroke(path, 0x00ffffff);
+
+        Canvas* c = liquidBeginFrame();
+
+        canvasSetStrokeColor(c, FAV_BLUE);
+        canvasSetFillColor(c, 0x0000ff00);
+
+        canvasFillRect(c, 100, 100, 200, 150);
+        canvasDrawCircle(c, 100, 100, 80);
+
+        liquidEndFrame(c);
         liquidPresent();
         usleep(16000);
     }
-
-    liquidPathDestroy(path);
 
     liquid_shutdown();
     return 0;

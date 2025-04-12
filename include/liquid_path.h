@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 // 실행 환경별 분기
-#ifdef LIQUID_NO_FLOAT
+#ifdef LIQUID_LITE
 #warning "You are using float-free liquid_roundf() instead of roundf() in math.h"
 static inline int liquid_roundf(float x) {
     int i = (int)x;
