@@ -23,36 +23,37 @@ int main(void) {
     for (int i = 0; i < 160000; ++i) {
         liquidClear(0x00112233);
 
-        Canvas* c = liquidBeginFrame();
+        Canvas* canvas = liquidBeginFrame();
 
-        canvasSetStrokeWidth(c, 10.0f);
+        // 기본 설정
+        canvasSetStrokeColor(canvas, 0x00FFFFFF);
+        canvasSetFillColor(canvas, 0x0066CCFF);
+        canvasSetStrokeWidth(canvas, 2.0f);
 
-        canvasSetStrokeColor(c, FAV_BLUE);
-        canvasSetFillColor(c, 0x0000ff00);
+        // --- 기본 사각형 그리기 ---
+        canvasSave(canvas); // 현재 변환 상태 저장
+        canvasDrawRect(canvas, 100, 100, 200, 100);
+        canvasRestore(canvas); // 복구
 
-        canvasFillRect(c, 100, 100, 200, 150);
-        canvasDrawCircle(c, 100, 100, 80);
+        // --- 회전 후 사각형 그리기 ---
+        canvasSave(canvas); // 다시 저장
 
-        canvasSetStrokeColor(c, 0x00ff0000);
-        canvasSetStrokeWidth(c, 8.0f);
-        canvasDrawCircle(c, 500, 200, 100);
-        canvasFillRegularPolygon(c, 500, 200, 100, 6);
+        // 회전 중심 좌표
+        float centerX = 100 + 200 / 2.0f;
+        float centerY = 100 + 100 / 2.0f;
 
-        canvasSetFillColor(c, FAV_GRAY);
-        canvasFillRegularPolygon(c, 600, 200, 100, 8);
+        canvasTranslate(canvas, centerX, centerY);
+        canvasRotate(canvas, 1.5708f); // 90도
+        canvasTranslate(canvas, -centerX, -centerY);
 
-        canvasSetStrokeColor(c, 0x00ffcc00);
-        canvasSetStrokeWidth(c, 8.0f);
+        canvasDrawRect(canvas, 100, 100, 200, 100);
 
-        canvasSetFillColor(c, FAV_BLUE);
-        canvasFillPolygonFromPoints(c, star, 10);
+        canvasRestore(canvas); // 복구
 
-        liquidEndFrame(c);
+        liquidEndFrame(canvas);
         liquidPresent();
         usleep(16000);
     }
-
-    
 
     liquid_shutdown();
     return 0;

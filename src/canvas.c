@@ -2,39 +2,77 @@
 #include <stdlib.h>
 #include <liquid_graphics.h>
 #include <liquid_path.h>
+#include <liquid_matrix.h>
 #include <utils/circle_table.h>
+
 
 #define CIRCLE_SEGMENTS 64
 
 struct CanvasState {
-    float translateX, translateY;
+    Matrix2D transform;
     float strokeWidth;
     uint32_t strokeColor, fillColor;
 };
 
 struct Canvas {
-    
-    uint32_t strokeColor;
-    uint32_t fillColor;
-
-    bool hasClip;
-    int clipX, clipY, clipW, clipH;
-
-    float strokeWidth;
-    
-
     CanvasState current;
+
     CanvasState stack[32];
     int stackTop;
 };
 
 
+
+// canvas 상태 관리 구현
+void canvasSave(Canvas *c) {
+    if (!c || c->stackTop >= 32) return;
+
+    c->stack[c->stackTop++] = c->current;
+}
+
+void canvasRestore(Canvas* c) {
+    if (!c || c->stackTop <= 0) return;
+
+    c->current = c->stack[--(c->stackTop)];
+}
+
+
+
+
+void canvasTranslate(Canvas *c, float tx, float ty) {
+    if (!c) return;
+
+    Matrix2D t = matrixTranslate(tx, ty);
+    c->current.transform = matrixMultiply(c->current.transform, t);
+}
+
+void canvasScale(Canvas *c, float sx, float sy) {  
+    if (!c) return;
+
+    Matrix2D s = matrixScale(sx, sy);
+    c->current.transform = matrixMultiply(c->current.transform, s);
+
+    
+}
+
+void canvasRotate(Canvas* c, float radians) {
+    if (!c) return;
+
+    Matrix2D r = matrixRotate(radians);
+    c->current.transform = matrixMultiply(c->current.transform, r);
+}
+
+
+
 Canvas* liquidBeginFrame(void) {
     Canvas* c = malloc(sizeof(Canvas));
-    c->strokeColor = 0xFFFFFFFF;    // 기본값 = 흰색
-    c->fillColor = 0xFF000000;      // 기본값 = 검은색
-    c->strokeWidth = 1.0f;
-    //c->current = c;
+    c->current.strokeColor = 0xFFFFFFFF;    // 기본값 = 흰색
+    c->current.fillColor = 0xFF000000;      // 기본값 = 검은색
+    c->current.strokeWidth = 1.0f;
+
+    c->current.transform = matrixIdentity();
+
+    c->stackTop = 0;
     
 
     return c;
@@ -46,20 +84,31 @@ void liquidEndFrame(Canvas* c) {
 
 void canvasSetStrokeColor(Canvas* c, uint32_t color) {
     if (c)
-        c->strokeColor = color;
+        c->current.strokeColor = color;
 }
 
 void canvasSetStrokeWidth(Canvas* c, float width) {
     if (!c || width <= 0.01f) return;
-    c->strokeWidth = width;
+    c->current.strokeWidth = width;
 }
 
-void canvasDrawLine(Canvas* c, int x0, int y0, int x1, int y1) {
-    if (!c) {
-        return;
-    }
 
-    liquidDrawLine(x0, y0, x1, y1, c->strokeColor, c->strokeWidth);
+
+
+void canvasDrawLine(Canvas* c, int x0, int y0, int x1, int y1) {
+    if (!c) return;
+
+    float fx0 = x0, fy0 = y0;
+    float fx1 = x1, fy1 = y1;
+
+    matrixTransfromPoint(c->current.transform, &fx0, &fy0);
+    matrixTransfromPoint(c->current.transform, &fx1, &fy1);
+
+    liquidDrawLine(
+        (int)(fx0), (int)(fy0),
+        (int)(fx1), (int)(fy1),
+        c->current.strokeColor, c->current.strokeWidth
+    );
 }
 
 
@@ -68,20 +117,28 @@ void canvasDrawLine(Canvas* c, int x0, int y0, int x1, int y1) {
 // 도형 채우기
 void canvasSetFillColor(Canvas* c, uint32_t color) {
     if (c) 
-        c->fillColor = color;
+        c->current.fillColor = color;
 }
 
 // 직사각형 출력
 void canvasDrawRect(Canvas* c, int x, int y, int w, int h) {
-    if (!c) {
-        return;
-    }
+    if (!c) return;
+
+    float fx0 = x,      fy0 = y;
+    float fx1 = x + w,  fy1 = y;
+    float fx2 = x + w,  fy2 = y + h;
+    float fx3 = x,      fy3 = y + h;
+
+    matrixTransfromPoint(c->current.transform, &fx0, &fy0);
+    matrixTransfromPoint(c->current.transform, &fx1, &fy1);
+    matrixTransfromPoint(c->current.transform, &fx2, &fy2);
+    matrixTransfromPoint(c->current.transform, &fx3, &fy3);
 
     LiquidPath* path = liquidPathCreate();
-    liquidPathMoveTo(path, x, y);
-    liquidPathLineTo(path, x + w, y);
-    liquidPathLineTo(path, x + w, y + h);
-    liquidPathLineTo(path, x, y + h);
+    liquidPathMoveTo(path, (int)(fx0), (int)(fy0));
+    liquidPathLineTo(path, (int)(fx1), (int)(fy1));
+    liquidPathLineTo(path, (int)(fx2), (int)(fy2));
+    liquidPathLineTo(path, (int)(fx3), (int)(fy3));
     liquidPathClose(path);
 
     //  (x, y) ───────────── (x + w, y)
@@ -90,24 +147,38 @@ void canvasDrawRect(Canvas* c, int x, int y, int w, int h) {
     //      │                       │
     //  (x, y + h) ──────── (x + w, y + h)
 
-    liquidPathStroke(path, c->strokeColor, c->strokeWidth);
+    liquidPathStroke(path, c->current.strokeColor, c->current.strokeWidth);
     liquidPathDestroy(path);
 }
+
 
 // 채워진 직사각형 출력
 void canvasFillRect(Canvas* c, int x, int y, int w, int h) {
     if (!c) return;
 
+    float fx0 = x,      fy0 = y;
+    float fx1 = x + w,  fy1 = y;
+    float fx2 = x + w,  fy2 = y + h;
+    float fx3 = x,      fy3 = y + h;
+
+    matrixTransfromPoint(c->current.transform, &fx0, &fy0);
+    matrixTransfromPoint(c->current.transform, &fx1, &fy1);
+    matrixTransfromPoint(c->current.transform, &fx2, &fy2);
+    matrixTransfromPoint(c->current.transform, &fx3, &fy3);
+
     LiquidPath* p = liquidPathCreate();
-    liquidPathMoveTo(p, x, y);
-    liquidPathLineTo(p, x + w, y);
-    liquidPathLineTo(p, x + w, y + h);
-    liquidPathLineTo(p, x, y + h);
+    liquidPathMoveTo(p, (int)(fx0), (int)(fy0));
+    liquidPathLineTo(p, (int)(fx1), (int)(fy1));
+    liquidPathLineTo(p, (int)(fx2), (int)(fy2));
+    liquidPathLineTo(p, (int)(fx3), (int)(fy3));
     liquidPathClose(p);
 
-    liquidPathFill(p, c->fillColor);
+    liquidPathFill(p, c->current.fillColor);
     liquidPathDestroy(p);
 }
+
+
+
 
 
 #ifdef LIQUID_LITE
@@ -130,9 +201,11 @@ void canvasDrawCircle(Canvas* c, int cx, int cy, int r) {
     }
 
     liquidPathClose(path);
-    liquidPathStroke(path, c->strokeColor, c->strokeWidth);
+    liquidPathStroke(path, c->current.strokeColor, c->current.strokeWidth);
     liquidPathDestroy(path);
 }
+
+
 
 #else
 // 원 그리기 - 일반 GPU환경용 버전
@@ -157,7 +230,7 @@ void canvasDrawCircle(Canvas* c, int cx, int cy, int r) {
         angle += angleStep;
     }
     liquidPathClose(path);
-    liquidPathStroke(path, c->strokeColor, c->strokeWidth);
+    liquidPathStroke(path, c->current.strokeColor, c->current.strokeWidth);
     liquidPathDestroy(path);
 }
 #endif
@@ -176,7 +249,7 @@ void canvasFillCircle(Canvas* c, int cx, int cy, int r) {
         else        liquidPathLineTo(path, x, y);
     }
     liquidPathClose(path);
-    liquidPathFill(path, c->fillColor);
+    liquidPathFill(path, c->current.fillColor);
     liquidPathDestroy(path);
 }
 
@@ -195,7 +268,7 @@ void canvasDrawRegularPolygon(Canvas* c, int cx, int cy, int r, int sides) {
     }
 
     liquidPathClose(path);
-    liquidPathStroke(path, c->strokeColor, c->strokeWidth);
+    liquidPathStroke(path, c->current.strokeColor, c->current.strokeWidth);
     liquidPathDestroy(path);
 }
 
@@ -214,7 +287,7 @@ void canvasFillRegularPolygon(Canvas* c, int cx, int cy, int r, int sides) {
     }
 
     liquidPathClose(path);
-    liquidPathFill(path, c->fillColor);
+    liquidPathFill(path, c->current.fillColor);
     liquidPathDestroy(path);
 }
 
@@ -232,7 +305,7 @@ void canvasDrawPolygonFromPoints(Canvas* c, const float* points, int count) {
     }
 
     liquidPathClose(path);
-    liquidPathStroke(path, c->strokeColor, c->strokeWidth);
+    liquidPathStroke(path, c->current.strokeColor, c->current.strokeWidth);
     liquidPathDestroy(path);
 }
 
@@ -250,12 +323,12 @@ void canvasFillPolygonFromPoints(Canvas* c, const float* points, int count) {
     }
 
     liquidPathClose(path);
-    liquidPathFill(path, c->fillColor);
+    liquidPathFill(path, c->current.fillColor);
     liquidPathDestroy(path);
 }
 
 
-
+/* TODO
 void canvasClipRect(Canvas* c, int x, int y, int w, int h) {
     if (!c) return;
 
@@ -270,3 +343,4 @@ void canvasResetClip(Canvas* c) {
     if (!c) return;
     c->hasClip = false;
 }
+*/

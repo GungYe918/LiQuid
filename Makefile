@@ -54,6 +54,7 @@ SRC = main.c \
       src/liquid_graphics.c \
       src/liquid_event.c \
       src/liquid_path.c \
+	  src/liquid_matrix.c	\
       src/canvas.c      \
 
 # 경량화 옵션이 있는 경우

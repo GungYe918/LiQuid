@@ -4,8 +4,21 @@
 typedef struct Canvas Canvas;
 typedef struct CanvasState CanvasState;
 
+// Canvas 상태 관리
+void canvasSave(Canvas* c);
+void canvasRestore(Canvas* c);
+
+// Canvas 이동 & 확대 & 회전
+void canvasTranslate(Canvas*    c,  float tx, float ty);
+void canvasScale(Canvas*        c,  float sx, float sy);
+void canvasRotate(Canvas*       c,  float radians);
+
+
+// Canvas 시작점 & 끝점 정의
 Canvas* liquidBeginFrame(void);
 void liquidEndFrame(Canvas* c);
+
+
 
 void canvasSetStrokeColor(Canvas* c, uint32_t color);
 void canvasSetStrokeWidth(Canvas* c, float    width);
