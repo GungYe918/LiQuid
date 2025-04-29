@@ -25,6 +25,7 @@ LDFLAGS_WAYLAND =
 ifeq ($(BACKEND), x11)
 PLATFORM_DEFINE = -DLIQUID_BACKEND_X11
 PLATFORM_SRC = src/platform/platform_x11.c
+LDFLAGS	+=	-lX11
 endif
 
 ifeq ($(BACKEND), wayland)
@@ -46,7 +47,7 @@ endif
 # 컴파일러 설정
 CC = gcc
 CFLAGS = -Wall -Iinclude -Isrc -Isrc/platform $(PLATFORM_DEFINE)
-LDFLAGS = -lX11 -lm
+LDFLAGS += -lm
 
 # 소스 파일 목록
 SRC = main.c \
