@@ -60,7 +60,7 @@ void liquidPathLineTo(LiquidPath* path, float x, float y);
 void liquidPathQuadraticTo(LiquidPath* path, float cx, float cy, float x, float y);
 void liquidPathClose(LiquidPath* path);
 
-void liquidPathStroke(LiquidPath* path, uint32_t color);
+void liquidPathStroke(LiquidPath* path, uint32_t color, float strokeWidth);
 
 
 // Fill FUNC

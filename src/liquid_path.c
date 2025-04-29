@@ -60,7 +60,7 @@ void liquidPathClose(LiquidPath* path) {
         (LiquidPathElement) {   LIQUID_PATH_CLOSE, 0, 0   };
 }
 
-void liquidPathStroke(LiquidPath* path, uint32_t color) {
+void liquidPathStroke(LiquidPath* path, uint32_t color, float strokeWidth) {
     float sx = 0;   // 시작점 (x)
     float sy = 0;   // 시작점 (y)
 
@@ -83,7 +83,7 @@ void liquidPathStroke(LiquidPath* path, uint32_t color) {
                 liquidDrawLine(
                     liquid_roundf(lx),  liquid_roundf(ly),
                     liquid_roundf(e.x), liquid_roundf(e.y), 
-                    color
+                    color, strokeWidth
                 );
                 lx = e.x;
                 ly = e.y;
@@ -94,7 +94,7 @@ void liquidPathStroke(LiquidPath* path, uint32_t color) {
                 liquidDrawLine(
                     liquid_roundf(lx), liquid_roundf(ly),
                     liquid_roundf(sx), liquid_roundf(sy),
-                    color
+                    color, strokeWidth
                 );
                 lx = sx;
                 ly = sy;
@@ -113,7 +113,7 @@ void liquidPathStroke(LiquidPath* path, uint32_t color) {
                     float x = u * u * lx + 2 * u * t * cx1 + t * t * x1;
                     float y = u * u * ly + 2 * u * t * cy1 + t * t * y1;
                     liquidDrawLine((int)roundf(prevX), (int)roundf(prevY),
-                                (int)roundf(x),     (int)roundf(y), color);
+                                (int)roundf(x),     (int)roundf(y), color, strokeWidth);
                     prevX = x;
                     prevY = y;
                 }
