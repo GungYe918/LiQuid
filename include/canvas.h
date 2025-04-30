@@ -23,6 +23,8 @@ void liquidEndFrame(Canvas* c);
 void canvasSetStrokeColor(Canvas* c, uint32_t color);
 void canvasSetStrokeWidth(Canvas* c, float    width);
 
+
+void canvasDrawPixel(Canvas* c, int x, int y);
 void canvasDrawLine(Canvas* c, int x0, int y0, int x1, int y1);
 void canvasDrawRect(Canvas* c, int x, int y, int w, int h);
 

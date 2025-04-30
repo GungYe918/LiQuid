@@ -111,6 +111,9 @@ void canvasDrawLine(Canvas* c, int x0, int y0, int x1, int y1) {
     );
 }
 
+void canvasDrawPixel(Canvas* c, int x, int y) {
+    liquidDrawPixel(x, y, c->current.strokeColor);
+}
 
 
 

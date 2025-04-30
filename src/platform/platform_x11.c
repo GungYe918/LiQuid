@@ -1,5 +1,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/keysym.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -14,7 +16,8 @@ static XImage* image = NULL;
 static Atom wmDeleteMessage;
 static int width, height;
 
-static uint32_t* framebufferRef = NULL;
+__attribute__((unused)) 
+    static uint32_t* framebufferRef = NULL;     // BACKEND=fb일때만 사용
 
 bool platform_init(int w, int h, const char* title) {
     width = w;
@@ -90,31 +93,54 @@ void platform_draw(const uint32_t* framebuffer) {
 }
 
 bool platform_poll_event(LiquidEvent* event) {
-    if (!XPending(display)) return false;
+    if (!event || !display) return false;
+    
+    while (XPending(display)) {
+        XEvent e;
+        XNextEvent(display, &e);
 
-    XEvent xev;
-    XNextEvent(display, &xev);
+        switch (e.type) {
+            case KeyPress:
+                event->type = LIQUID_EVENT_KEY_DOWN;
+                event->key.keycode = e.xkey.keycode;
 
-    switch (xev.type) {
-        case ClientMessage:
-            if ((Atom)xev.xclient.data.l[0] == wmDeleteMessage) {
-                event->type = LIQUID_EVENT_QUIT;
+                char buf[8] = {0};
+                KeySym keysym;
+                XLookupString(&e.xkey, buf, sizeof(buf), &keysym, NULL);
+                event->key.character = buf[0];
+
                 return true;
-            }
-            break;
-        case KeyPress:
-            event->type = LIQUID_EVENT_KEYDOWN;
-            event->key.keycode = xev.xkey.keycode;
-            return true;
-        case MotionNotify:
-            event->type = LIQUID_EVENT_MOUSEMOVE;
-            event->mouse.x = xev.xmotion.x;
-            event->mouse.y = xev.xmotion.y;
-            return true;
-        default:
-            break;
+
+            case KeyRelease:
+                event->type = LIQUID_EVENT_KEY_UP;
+                event->key.keycode = e.xkey.keycode;
+                return true;
+
+            case ButtonPress:
+                event->type = LIQUID_EVENT_MOUSE_DOWN;
+                event->mouse.x = e.xbutton.x;
+                event->mouse.y = e.xbutton.y;
+                event->mouse.button = e.xbutton.button;
+                return true;
+
+            case ButtonRelease:
+                event->type = LIQUID_EVENT_MOUSE_UP;
+                event->mouse.x = e.xbutton.x;
+                event->mouse.y = e.xbutton.y;
+                event->mouse.button = e.xbutton.button;
+                return true;
+
+            case MotionNotify:
+                event->type = LIQUID_EVENT_MOUSE_MOVE;
+                event->mouse.x = e.xmotion.x;
+                event->mouse.y = e.xmotion.y;
+                return true;
+            
+
+            default:
+                return false;
+        }
     }
 
-    event->type = LIQUID_EVENT_NONE;
     return false;
 }

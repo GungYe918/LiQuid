@@ -1,58 +1,89 @@
 #include <liquid.h>
+#include <Text/font.h>
+#include <Text/liquid_text.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <platform/platform_switch.h>
 
-float star[] = {
-    400, 200,
-    420, 280,
-    500, 280,
-    440, 330,
-    460, 400,
-    400, 360,
-    340, 400,
-    360, 330,
-    300, 280,
-    380, 280
-};
+char inputBuffer[INPUT_BUFFER_SIZE] = {0};      // 문자열 누적 버퍼 (256 MAX)
+int inputLength = 0;                            // 현재 입력된 문자 수
 
 int main(void) {
     liquid_init(800, 600, "Canvas test");
 
-    for (int i = 0; i < 160000; ++i) {
-        liquidClear(0x00112233);
+    bool running = true;
+    int mouseX = 0;
+    int mouseY = 0;
+
+    while (running) {
+        LiquidEvent event;
+        while (liquid_poll_event(&event)) {
+            switch (event.type) {
+                case LIQUID_EVENT_QUIT:
+                    running = false;
+                    break;
+
+                case LIQUID_EVENT_KEY_DOWN:
+                    char c = event.key.character;
+
+                    if (c >= 32 && c <= 126) { // 출력 가능한 ASCII 문자
+                        if (inputLength < INPUT_BUFFER_SIZE - 1) {
+                            inputBuffer[inputLength++] = c;
+                            inputBuffer[inputLength] = '\0'; // null-terminate
+                        }
+                    } else if (event.key.keycode == 22 || event.key.character == 8) { // Backspace
+                        if (inputLength > 0) {
+                            inputBuffer[--inputLength] = '\0';
+                        }
+                    } else if (event.key.keycode == 36) { // Enter key
+                        printf("입력된 문자열: %s\n", inputBuffer);
+                        inputLength = 0;
+                        inputBuffer[0] = '\0';
+                    }
+
+                    printf(" | Pressed Keycode =  %d\n | Ascii Letter = %c\n\n", event.key.keycode, event.key.character);
+                    if (event.key.keycode == 9) 
+                        running = false;
+                    break;
+
+                case LIQUID_EVENT_MOUSE_MOVE:
+                    mouseX = event.mouse.x;
+                    mouseY = event.mouse.y;
+                    break;
+
+                case LIQUID_EVENT_MOUSE_DOWN:
+                    printf("Mouse down: button %d at (%d, %d)\n",
+                        event.mouse.button, event.mouse.x, event.mouse.y);
+                    break;
+
+                default: break;
+
+            }
+        }
 
         Canvas* canvas = liquidBeginFrame();
 
-        // 기본 설정
-        canvasSetStrokeColor(canvas, 0x00FFFFFF);
-        canvasSetFillColor(canvas, 0x0066CCFF);
-        canvasSetStrokeWidth(canvas, 2.0f);
+        liquidClear(BG_COLOR);
+        
+        canvasSetStrokeColor(canvas, 0x00ffffff);
+        canvasDrawLine(canvas, 100, 100, 700, 500);
+        canvasDrawRect(canvas, 100, 100, 700, 500);
 
-        // --- 기본 사각형 그리기 ---
-        canvasSave(canvas); // 현재 변환 상태 저장
-        canvasDrawRect(canvas, 100, 100, 200, 100);
-        canvasRestore(canvas); // 복구
+        canvasSetFillColor(canvas, FAV_GRAY);
+        canvasFillCircle(canvas, mouseX, mouseY, 20);
 
-        // --- 회전 후 사각형 그리기 ---
-        canvasSave(canvas); // 다시 저장
+        canvasScale(canvas, 2.0f, 2.0f);
+        canvasPushTextScaled(canvas, 200, 100, "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPp", 1);
+        canvasPushTextScaled(canvas, 200, 200, "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPp", 2);
+        canvasPushTextScaled(canvas, 25, 300, "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPp", 3);
 
-        // 회전 중심 좌표
-        float centerX = 100 + 200 / 2.0f;
-        float centerY = 100 + 100 / 2.0f;
+        canvasDrawCircle(canvas, 50, 200, 50);
 
-        canvasTranslate(canvas, centerX, centerY);
-        canvasRotate(canvas, 1.5708f); // 90도
-        canvasTranslate(canvas, -centerX, -centerY);
-
-        canvasDrawRect(canvas, 100, 100, 200, 100);
-
-        canvasRestore(canvas); // 복구
 
         liquidEndFrame(canvas);
         liquidPresent();
-        usleep(16000);
     }
 
     liquid_shutdown();

@@ -56,11 +56,23 @@ SRC = main.c \
       src/liquid_event.c \
       src/liquid_path.c \
 	  src/liquid_matrix.c	\
+	  src/liquid_text.c		\
+	  src/font.c	\
       src/canvas.c      \
 
 # 경량화 옵션이 있는 경우
 ifdef LIQUID_LITE
-CFLAGS += -DLIQUID_LITE
+	CFLAGS += -DLIQUID_LITE
+	CFLAGS += -Os -s -march=native -ffunction-sections -fdata-sections
+    LDFLAGS += -Wl,--gc-sections
+endif
+
+# freetype 없이 빌드 (내장 비트맵 폰트 사용)
+ifdef NO_FREETYPE
+	CFLAGS += -DNO_FREETYPE
+else
+    CFLAGS += $(shell pkg-config --cflags freetype2)
+    LDFLAGS += $(shell pkg-config --libs freetype2)
 endif
 
 # 기본 빌드 대상
