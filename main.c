@@ -1,24 +1,70 @@
 #include <liquid.h>
 #include <Text/font.h>
 #include <Text/liquid_text.h>
+#include <Image/liquid_image.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include <platform/platform_switch.h>
 
-char inputBuffer[INPUT_BUFFER_SIZE] = {0};      // 문자열 누적 버퍼 (256 MAX)
-int inputLength = 0;                            // 현재 입력된 문자 수
+
 
 int main(void) {
     liquid_init(800, 600, "Canvas test");
 
-    bool running = true;
+    bool isRunning = true;
     int mouseX = 0;
     int mouseY = 0;
 
-    while (running) {
+    while (isRunning) {
         LiquidEvent event;
+        liquidEventListener(
+            &event, &isRunning, 
+            &mouseX, &mouseY
+        );
+
+        Canvas* canvas = liquidBeginFrame();
+
+        canvasLoadFont(canvas, "include/Fonts/NotoSans-Regular.ttf");
+
+        liquidClear(BG_COLOR);
+        
+        canvasSetStrokeColor(canvas, 0x00ffffff);
+        canvasDrawLine(canvas, 100, 100, 700, 500);
+        canvasDrawRect(canvas, 100, 100, 700, 500);
+
+        canvasSetFillColor(canvas, FAV_GRAY);
+        
+
+        canvasSetFontSize(canvas, 30);
+        canvasPushText(canvas, 100, 100, "LiQuid v0.0.1");
+        canvasSetFontSize(canvas, 60);
+        canvasPushText(canvas, 100, 300, "Seo MinSang");
+
+        canvasScale(canvas, 2.0f, 2.0f);
+
+        canvasDrawCircle(canvas, 50, 200, 50);
+
+        Image* logo = imageLoadFromFile("example/logo.png");
+        canvasPlaceImage(canvas, 100, 100, logo);
+        imageFree(logo);
+
+        canvasFillCircle(canvas, mouseX, mouseY, 20);
+
+
+        liquidEndFrame(canvas);
+        liquidPresent();
+    }
+
+    liquid_shutdown();
+    return 0;
+}
+
+
+
+
+/*  <--liquidEventListener-->
         while (liquid_poll_event(&event)) {
             switch (event.type) {
                 case LIQUID_EVENT_QUIT:
@@ -62,30 +108,5 @@ int main(void) {
 
             }
         }
-
-        Canvas* canvas = liquidBeginFrame();
-
-        liquidClear(BG_COLOR);
         
-        canvasSetStrokeColor(canvas, 0x00ffffff);
-        canvasDrawLine(canvas, 100, 100, 700, 500);
-        canvasDrawRect(canvas, 100, 100, 700, 500);
-
-        canvasSetFillColor(canvas, FAV_GRAY);
-        canvasFillCircle(canvas, mouseX, mouseY, 20);
-
-        canvasScale(canvas, 2.0f, 2.0f);
-        canvasPushTextScaled(canvas, 200, 100, "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPp", 1);
-        canvasPushTextScaled(canvas, 200, 200, "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPp", 2);
-        canvasPushTextScaled(canvas, 25, 300, "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPp", 3);
-
-        canvasDrawCircle(canvas, 50, 200, 50);
-
-
-        liquidEndFrame(canvas);
-        liquidPresent();
-    }
-
-    liquid_shutdown();
-    return 0;
-}
+*/

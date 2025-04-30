@@ -56,7 +56,53 @@ void canvasPushTextScaled(Canvas* c, int x, int y, const char* text, int scale) 
 static FT_Library ftLib;
 static FT_Face ftFace;
 
-bool canvasLoadFont(const char* path, int pixelSize) {
+bool canvasLoadFont(Canvas *c, const char* path) {
+    if (FT_Init_FreeType(&ftLib)) return false;
+    if (FT_New_Face(ftLib, path, 0, &ftFace)) return false;
+
+    FT_Set_Pixel_Sizes(ftFace, 0, c->current.fontSize);
     return true;
+}
+
+bool canvasSetFontSize(Canvas* c, int fontSize) {
+    if (!c || !ftFace || fontSize < 1.0) return false;
+
+    c->current.fontSize = fontSize;
+
+    return FT_Set_Pixel_Sizes(ftFace, 0, fontSize) == 0;
+}
+
+void canvasPushText(Canvas *c, int x, int y, const char* text) {
+    if (!c || !text) return;
+
+    FT_Set_Pixel_Sizes(ftFace, 0, c->current.fontSize);
+    int penX = x;
+
+    while (*text) {
+        char ch = *text++;
+
+        if (FT_Load_Char(ftFace, ch, FT_LOAD_RENDER)) continue;
+
+        FT_GlyphSlot g = ftFace->glyph;
+
+        for (int row = 0; row < (g->bitmap.rows); ++row) {
+            for (int column = 0; column < (g->bitmap.width); ++column) {
+                int alpha = g->bitmap.buffer[row * g->bitmap.pitch + column];
+                
+                if (alpha > 0) {
+                    //uint32_t color = c->current.strokeColor;
+                    uint8_t r =     (c->current.strokeColor >> 16) & 0xFF;
+                    uint8_t g_ =    (c->current.strokeColor >> 8) & 0xFF;
+                    uint8_t b =     (c->current.strokeColor & 0xFF);
+
+                    uint32_t blended = (alpha << 24) | (r << 16) | (g_ << 8) | b;
+                    liquidDrawPixel(penX + g->bitmap_left + column, y - g->bitmap_top + row, blended);
+                }
+            }
+        }
+        
+        penX += g->advance.x >> 6;
+    }
+
 }
 #endif

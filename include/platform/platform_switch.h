@@ -5,6 +5,10 @@
 #if defined(LIQUID_BACKEND_X11)
 #include "platform_x11.c"
 
+// xrender 환경
+#elif defined(LIQUID_BACKEND_XRENDER)
+#include "platform_xrender.c"
+
 // wayland 환경
 #elif defined(LIQUID_BACKEND_WAYLAND)
 #include "platform_wayland.c"

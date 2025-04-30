@@ -2,24 +2,11 @@
 #include <stdlib.h>
 #include <liquid_graphics.h>
 #include <liquid_path.h>
-#include <liquid_matrix.h>
 #include <utils/circle_table.h>
 
 
 #define CIRCLE_SEGMENTS 64
 
-struct CanvasState {
-    Matrix2D transform;
-    float strokeWidth;
-    uint32_t strokeColor, fillColor;
-};
-
-struct Canvas {
-    CanvasState current;
-
-    CanvasState stack[32];
-    int stackTop;
-};
 
 
 
@@ -69,10 +56,12 @@ Canvas* liquidBeginFrame(void) {
     c->current.strokeColor = 0xFFFFFFFF;    // 기본값 = 흰색
     c->current.fillColor = 0xFF000000;      // 기본값 = 검은색
     c->current.strokeWidth = 1.0f;
+    c->current.fontSize = 18;               // 기본값 = 18
 
     c->current.transform = matrixIdentity();
 
     c->stackTop = 0;
+
     
 
     return c;
@@ -92,6 +81,12 @@ void canvasSetStrokeWidth(Canvas* c, float width) {
     c->current.strokeWidth = width;
 }
 
+/*
+void canvasSetFontSize(Canvas* c, int fontSize) {
+    if (!c || fontSize <= 1) return;
+    c->current.fontSize = fontSize;
+}
+*/
 
 
 

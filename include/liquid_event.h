@@ -1,5 +1,7 @@
 #pragma once
+#include <Text/liquid_text.h>
 #include <stdbool.h>
+#include <stdio.h> // <-- for Debuging
 
 typedef enum {
     LIQUID_EVENT_NONE,
@@ -31,3 +33,4 @@ typedef struct {
 
 
 bool liquid_poll_event(LiquidEvent *event);
+void liquidEventListener(LiquidEvent *event, bool* isRunning, int* mouseX, int* mouseY);

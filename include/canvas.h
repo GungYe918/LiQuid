@@ -1,8 +1,20 @@
 #pragma once
 #include <stdint.h>
+#include <liquid_matrix.h>
 
-typedef struct Canvas Canvas;
-typedef struct CanvasState CanvasState;
+typedef struct {
+    Matrix2D transform;
+    float strokeWidth;
+    uint32_t strokeColor, fillColor;
+    int fontSize;
+} CanvasState;
+
+typedef struct {
+    CanvasState current;
+
+    CanvasState stack[32];
+    int stackTop;
+} Canvas;
 
 // Canvas 상태 관리
 void canvasSave(Canvas* c);
@@ -21,8 +33,11 @@ void liquidEndFrame(Canvas* c);
 
 
 void canvasSetStrokeColor(Canvas* c, uint32_t color);
-void canvasSetStrokeWidth(Canvas* c, float    width);
+void canvasSetStrokeWidth(Canvas* c, float width);
 
+/*
+void canvasSetFontSize(Canvas* c, int fontSize);
+*/
 
 void canvasDrawPixel(Canvas* c, int x, int y);
 void canvasDrawLine(Canvas* c, int x0, int y0, int x1, int y1);
