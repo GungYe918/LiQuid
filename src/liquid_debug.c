@@ -1,4 +1,4 @@
-#include <Utils/debug.h>
+#include <Utils/Debug.h>
 #include <Text/liquid_text.h>
 #include <stdio.h>
 
@@ -6,7 +6,7 @@
 static char debugLog[MAX_DEBUG_LINES][256];
 static int debugLineCount = 0;
 
-void canvasDebugPrint(const char* fmt, ...) {
+void LQDebugPrint(const char* fmt, ...) {
     if (debugLineCount >= MAX_DEBUG_LINES) {
         for (int i = 1; i < MAX_DEBUG_LINES; ++i)
             strcpy(debugLog[i - 1], debugLog[i]);
@@ -21,7 +21,7 @@ void canvasDebugPrint(const char* fmt, ...) {
     debugLineCount++;
 }
 
-void canvasDebugFlush(Canvas* canvas) {
+void LQDebugFlush(Canvas* canvas) {
     for (int i = 0; i < debugLineCount; ++i) {
         canvasPushText(canvas, 10, 10 + i * 12, debugLog[i]);
     }

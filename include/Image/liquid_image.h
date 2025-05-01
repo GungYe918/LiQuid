@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <canvas.h>
 #include <liquid_graphics.h>
+#include <Utils/Debug.h>
 
 typedef struct {
     int width;
