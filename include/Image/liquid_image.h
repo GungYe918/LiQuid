@@ -12,7 +12,7 @@ typedef struct {
     uint8_t* data;
 } Image;
 
-Image* imageLoadFromFile(const char* filename);
-void imageFree(Image* img);
+LiQuidError imageLoadFromFile(const char* filename, Image** outImage);
+LiQuidError imageFree(Image* img);
 
-void canvasPlaceImage(Canvas* c, int x, int y, const Image* img);
+LiQuidError canvasPlaceImage(Canvas* c, int x, int y, const Image* img);

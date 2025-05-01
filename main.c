@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <Utils/Debug.h>
+
 #include <platform/platform_switch.h>
 
 
@@ -46,7 +48,13 @@ int main(void) {
 
         canvasDrawCircle(canvas, 50, 200, 50);
 
-        Image* logo = imageLoadFromFile("example/logo.png");
+        Image* logo = NULL;
+        LiQuidError err = imageLoadFromFile("example/logo.png", &logo);
+        if (err != LIQUID_OK) {
+            printf("%s\n",LQErrorToString(err));
+            exit(1);
+        }
+        
         canvasPlaceImage(canvas, 100, 100, logo);
         imageFree(logo);
 
