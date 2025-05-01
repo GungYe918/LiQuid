@@ -11,9 +11,9 @@
 #include <platform/platform_switch.h>
 
 
-
 int main(void) {
     liquid_init(800, 600, "Canvas test");
+    
 
     bool isRunning = true;
     int mouseX = 0;
@@ -27,24 +27,25 @@ int main(void) {
         );
 
         Canvas* canvas = liquidBeginFrame();
+        //printf("Screen Size Is = [%d, %d]\n", logicalWidth, logicalHeight);
 
-        canvasLoadFont(canvas, "include/Fonts/NotoSans-Regular.ttf");
+        canvasLoadFont(canvas, "include/Fonts/SUIT-Regular.ttf");
 
         liquidClear(BG_COLOR);
         
-        canvasSetStrokeColor(canvas, 0x00ffffff);
+        canvasSetStrokeColor(canvas, 0xffffffff);
         canvasDrawLine(canvas, 100, 100, 700, 500);
         canvasDrawRect(canvas, 100, 100, 700, 500);
 
-        canvasSetFillColor(canvas, FAV_GRAY);
+        canvasSetFillColor(canvas, GRAY);
         
 
         canvasSetFontSize(canvas, 30);
         canvasPushText(canvas, 100, 50, "LiQuid v0.0.1");
         canvasSetFontSize(canvas, 60);
-        canvasPushText(canvas, 100, 300, "Seo MinSang");
+        canvasPushText(canvas, 100, 200, "Seo MinSang\n서민상");
 
-        canvasScale(canvas, 2.0f, 2.0f);
+        //canvasScale(canvas, 2.0f, 2.0f);
 
         canvasDrawCircle(canvas, 50, 200, 50);
 
@@ -55,10 +56,22 @@ int main(void) {
             exit(1);
         }
         
-        canvasPlaceImage(canvas, 100, 100, logo);
+        canvasPlaceImage(canvas,  50, 500, logo);
         imageFree(logo);
 
+        const char* paragraph =
+        "liquid graphics library now supports text blocks.\n"
+        "This allows you to wrap long paragraphs automatically within a canvas.\n LiQuid!!!";
+
+        canvasSetFontSize(canvas, 50);
+        canvasPlaceTextField(canvas, 100, 300, 420, paragraph);
+
+        
+
+        canvasSetFillColor(canvas, SEMI_BLACK);
         canvasFillCircle(canvas, mouseX, mouseY, 20);
+        
+
 
 
         liquidEndFrame(canvas);

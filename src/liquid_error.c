@@ -48,14 +48,21 @@ const char* LQErrorToString(LiQuidError error) {
         // Event System
         case LIQUID_ERROR_EVENT_SYSTEM:
             return "Event system error.\n이벤트 시스템에서 오류가 발생했습니다.\n[ErrorCode: 600 ]";
+        
+        // Widget
+        case LIQUID_ERROR_WIDGET_NULL:
+            return "Wiget is NULL.\n이미 삭제된 위젯이나 존재하지 않거나, 정상적이지 않은 위젯을 사용하고 있습니다.\n[ErrorCode: 700 ]";
+        case LIQUID_ERROR_WIDGET_HAS_NO_ROOT:
+            return "Wiget has no root\n위젯의 루트가 존재하지 않습니다.\n[ErrorCode: 701 ]";
+        
 
         // User Error
         case LIQUID_ERROR_INVALID_ARGUMENT:
-            return "Invalid argument.\n잘못된 인자입니다.\n[ErrorCode: 700 ]";
+            return "Invalid argument.\n잘못된 인자입니다.\n[ErrorCode: 800 ]";
         case LIQUID_ERROR_OUT_OF_MEMORY:
-            return "Out of memory.\n메모리 부족 오류가 발생했습니다.\n[ErrorCode: 701 ]";
+            return "Out of memory.\n메모리 부족 오류가 발생했습니다.\n[ErrorCode: 801 ]";
         case LIQUID_ERROR_INVALID_OPERATION:
-            return "Invalid operation.\n잘못된 작업 혹은 허용되지 않는 작업이 발생했습니다..\n[ErrorCode: 702 ]";
+            return "Invalid operation.\n잘못된 작업 혹은 허용되지 않는 작업이 발생했습니다..\n[ErrorCode: 802 ]";
         default:
             return "ERROR!";
     }

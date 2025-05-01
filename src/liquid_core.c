@@ -3,7 +3,7 @@
 #include "platform/platform.h"
 //#include "platform/platform_switch.h"
 
-uint32_t framebuffer[LIQUID_WIDTH * LIQUID_HEIGHT];
+extern uint32_t* framebuffer;
 
 bool liquid_init(int width, int height, const char *title) {
     return platform_init(width, height, title);

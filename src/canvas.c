@@ -4,6 +4,7 @@
 #include <liquid_path.h>
 #include <Utils/circle_table.h>
 
+#include <platform/platform.h>
 
 #define CIRCLE_SEGMENTS 64
 
@@ -53,16 +54,25 @@ void canvasRotate(Canvas* c, float radians) {
 
 Canvas* liquidBeginFrame(void) {
     Canvas* c = malloc(sizeof(Canvas));
+    if (!c) return NULL;
+
     c->current.strokeColor = 0xFFFFFFFF;    // 기본값 = 흰색
     c->current.fillColor = 0xFF000000;      // 기본값 = 검은색
     c->current.strokeWidth = 1.0f;
     c->current.fontSize = 18;               // 기본값 = 18
-
     c->current.transform = matrixIdentity();
 
     c->stackTop = 0;
 
+    // 실재 해상도 저장 + 스케일 계산
+    c->physicalWidth = logicalWidth;
+    c->physicalHeight = logicalHeight;
+
+    // 논리 좌표만큼 스케일
+    float sx = (float)logicalWidth / 800;
+    float sy = (float)logicalHeight / 600;
     
+    canvasScale(c, sx, sy);
 
     return c;
 }

@@ -24,7 +24,7 @@ int hasValidImageExtension(const char* filename) {
 }
 
 LiQuidError imageLoadFromFile(const char* filename, Image** outImage) {
-    if (!filename || !outImage || strlen(filename)) return LIQUID_ERROR_INVALID_ARGUMENT;
+    if (!filename || !outImage || strlen(filename)==0) return LIQUID_ERROR_INVALID_ARGUMENT;
 
     
     Image* img = malloc(sizeof(Image));

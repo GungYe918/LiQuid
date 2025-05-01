@@ -14,6 +14,9 @@ typedef struct {
 
     CanvasState stack[32];
     int stackTop;
+
+    float scaleX, scaleY;
+    int physicalWidth, physicalHeight;
 } Canvas;
 
 // Canvas 상태 관리

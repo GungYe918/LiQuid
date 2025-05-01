@@ -11,6 +11,9 @@ typedef enum {
     LIQUID_EVENT_MOUSE_MOVE,
     LIQUID_EVENT_MOUSE_DOWN,
     LIQUID_EVENT_MOUSE_UP,
+    // 화면 리사이즈
+    LIQUID_EVENT_ERROR,
+    LIQUID_EVENT_RESIZE,
 } LiquidEventType;
 
 typedef struct {
