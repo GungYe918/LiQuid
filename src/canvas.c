@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <liquid_graphics.h>
 #include <liquid_path.h>
-#include <utils/circle_table.h>
+#include <Utils/circle_table.h>
 
 
 #define CIRCLE_SEGMENTS 64

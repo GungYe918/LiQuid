@@ -71,6 +71,7 @@ SRC = main.c \
 	  src/liquid_matrix.c	\
 	  src/liquid_text.c		\
 	  src/liquid_image.c	\
+	  src/liquid_debug.c	\
 	  src/font.c	\
       src/canvas.c      \
 

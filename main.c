@@ -38,7 +38,7 @@ int main(void) {
         
 
         canvasSetFontSize(canvas, 30);
-        canvasPushText(canvas, 100, 100, "LiQuid v0.0.1");
+        canvasPushText(canvas, 100, 50, "LiQuid v0.0.1");
         canvasSetFontSize(canvas, 60);
         canvasPushText(canvas, 100, 300, "Seo MinSang");
 

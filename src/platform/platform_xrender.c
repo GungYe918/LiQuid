@@ -102,83 +102,71 @@ bool platform_init(int w, int h, const char* title) {
 void platform_draw(const uint32_t* framebuffer) {
     if (!framebuffer || !display) return;
 
-    // 창의 깊이와 시각적 정보를 올바르게 가져옵니다
-    int screen = DefaultScreen(display);
-    Visual* visual = DefaultVisual(display, screen);
-    int depth = DefaultDepth(display, screen);
+    // 1. GPU-friendly Pixmap 생성 (depth = 32)
+    Pixmap pixmap = XCreatePixmap(display, window, width, height, 32);
 
-    // 현재 창의 속성을 가져옵니다
-    XWindowAttributes attrs;
-    XGetWindowAttributes(display, window, &attrs);
+    // 2. GC 생성 (픽셀 데이터를 GPU에 그리기 위한 그래픽 컨텍스트)
+    GC temp_gc = XCreateGC(display, pixmap, 0, NULL);
 
-    // 창의 깊이에 맞게 Pixmap 생성 (무조건 32가 아니라 실제 깊이 사용)
-    Pixmap pixmap = XCreatePixmap(display, window, width, height, attrs.depth);
-
-    // 창의 Visual과 같은 Visual을 사용하여 XImage 생성
+    // 3. XImage 생성 (이건 CPU buffer지만, XPutImage 후 GPU 메모리에 올라감)
     XImage* img = XCreateImage(
         display,
-        attrs.visual,
-        attrs.depth,
+        CopyFromParent, // 정확한 Visual은 Pixmap엔 불필요
+        32,
         ZPixmap,
         0,
-        (char*)malloc(width * height * 4),  // 4바이트 할당 (RGBA)
+        (char*)malloc(width * height * 4),  // RGBA
         width,
         height,
-        32,  // bitmap_pad
-        0    // bytes_per_line (0으로 설정하면 자동 계산)
+        32,
+        0
     );
 
     if (!img || !img->data) {
-        fprintf(stderr, "Failed to create XImage\n");
+        fprintf(stderr, "XImage creation failed\n");
         if (img) XDestroyImage(img);
         XFreePixmap(display, pixmap);
         return;
     }
 
-    // framebuffer 데이터 복사
+    // 4. CPU에서 RGBA 데이터 복사
     memcpy(img->data, framebuffer, width * height * 4);
 
-    // Pixmap에 이미지 업로드
-    XPutImage(display, pixmap, graphicsContext, img, 0, 0, 0, 0, width, height);
+    // 5. GPU 메모리에 XImage 업로드 (여기서 드라이버가 GPU에 upload 가능)
+    XPutImage(display, pixmap, temp_gc, img, 0, 0, 0, 0, width, height);
 
-    // Pixmap을 Picture로 변환
-    // 여기서 올바른 포맷을 찾습니다
-    XRenderPictFormat* pixmapFormat;
-    
-    if (attrs.depth == 32) {
-        pixmapFormat = XRenderFindStandardFormat(display, PictStandardARGB32);
-    } else if (attrs.depth == 24) {
-        pixmapFormat = XRenderFindStandardFormat(display, PictStandardRGB24);
-    } else {
-        // 다른 깊이에 대한 처리
-        pixmapFormat = XRenderFindVisualFormat(display, attrs.visual);
-    }
-    
-    if (!pixmapFormat) {
-        fprintf(stderr, "Failed to find pixmap format\n");
+    // 6. Pixmap → Picture (GPU 텍스처와 유사한 개념)
+    XRenderPictFormat* src_format = XRenderFindStandardFormat(display, PictStandardARGB32);
+    if (!src_format) {
+        fprintf(stderr, "Failed to find ARGB32 format\n");
         XDestroyImage(img);
+        XFreeGC(display, temp_gc);
         XFreePixmap(display, pixmap);
         return;
     }
 
-    Picture srcPicture = XRenderCreatePicture(display, pixmap, pixmapFormat, 0, NULL);
+    Picture src_picture = XRenderCreatePicture(display, pixmap, src_format, 0, NULL);
 
-    // GPU 가속 합성 (Pixmap → Window)
+    // 7. Composite → GPU 블렌딩 (하드웨어 가속)
     XRenderComposite(
         display,
-        PictOpSrc,       // 완전히 덮어쓰기
-        srcPicture,      // src
-        None,            // mask
-        picture,         // dst
-        0, 0, 0, 0, 0, 0,
+        PictOpSrc,         // 덮어쓰기
+        src_picture,       // 소스
+        None,              // 마스크 없음
+        picture,           // 대상 윈도우
+        0, 0,              // src x, y
+        0, 0,              // mask x, y
+        0, 0,              // dst x, y
         width, height
     );
 
-    // 리소스 정리
-    XRenderFreePicture(display, srcPicture);
+    // 8. 정리
+    XRenderFreePicture(display, src_picture);
+    XFreeGC(display, temp_gc);
     XFreePixmap(display, pixmap);
     XDestroyImage(img);
 }
+
 
 
 void platform_present() {
