@@ -9,6 +9,10 @@
 #elif defined(LIQUID_BACKEND_XRENDER)
 #include "platform_xrender.c"
 
+// openGL + x11 환경
+#elif defined(LIQUID_BACKEND_X11_WITH_OPENGL)
+#include "platform_x11_opengl.c"
+
 // wayland 환경
 #elif defined(LIQUID_BACKEND_WAYLAND)
 #include "platform_wayland.c"

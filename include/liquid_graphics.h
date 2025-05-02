@@ -31,6 +31,8 @@
 #define SEMI_WHITE   0x88FFFFFF
 #define TRANSPARENT  0x00000000  // 완전 투명
 
+extern uint32_t clearColor;   // 초기 컬러값 검정으로 
+
 
 //저수준 함수
 void liquidClear(uint32_t color);

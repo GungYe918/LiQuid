@@ -12,6 +12,9 @@
 #include <platform/platform.h>
 #include "../liquid_internal.h"  // <- 해상도 정의 가져오기
 
+int logicalWidth    = 0;
+int logicalHeight   = 0;
+
 static int fb_fd = -1;
 static struct fb_var_screeninfo vinfo;
 static struct fb_fix_screeninfo finfo;
@@ -23,6 +26,9 @@ bool platform_init(int w, int h, const char* title) {
     (void)w;
     (void)h;
     (void)title;
+
+    logicalWidth  = w;
+    logicalHeight = h;
 
     fb_fd = open("/dev/fb0", O_RDWR);
     if (fb_fd == -1) {

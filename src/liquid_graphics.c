@@ -3,9 +3,12 @@
 #include "platform/platform.h"
 
 uint32_t* framebuffer = NULL;
+uint32_t clearColor = 0x000000FF;
 
 void liquidClear(uint32_t color) {
     if (!framebuffer) return;
+    clearColor = color;
+
     for (int i = 0; i < logicalWidth * logicalHeight; ++i) {
         framebuffer[i] = color;
     }

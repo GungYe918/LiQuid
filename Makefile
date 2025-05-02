@@ -4,9 +4,9 @@
 # 사용자 지정 명령어 목표
 GOAL := $(MAKECMDGOALS)
 
-BACKEND ?= x11
+BACKEND ?= x11_with_opengl
 
-VALID_BACKENDS := x11 wayland fb xrender
+VALID_BACKENDS := x11 wayland fb xrender x11_with_opengl
 ifneq ($(filter $(BACKEND),$(VALID_BACKENDS)), $(BACKEND))
 $(info [ERROR] Invalid BACKEND: '$(BACKEND)')
 $(info Supported values are:)
@@ -34,6 +34,12 @@ PLATFORM_SRC = src/platform/platform_xrender.c
 LDFLAGS	+=	-lX11 -lXrender
 endif
 
+ifeq ($(BACKEND), x11_with_opengl)
+PLATFORM_DEFINE = -DLIQUID_BACKEND_X11_WITH_OPENGL
+PLATFORM_SRC = src/platform/platform_x11_opengl.c
+LDFLAGS	+=	-lGL -lGLU -lX11	-lXext
+endif
+
 ifeq ($(BACKEND), wayland)
 PLATFORM_DEFINE = -DLIQUID_BACKEND_WAYLAND
 PLATFORM_SRC = src/platform/platform_wayland.c  \
@@ -52,7 +58,7 @@ endif
 
 # 컴파일러 설정
 CC = gcc
-CFLAGS = -Wall -Iinclude -Isrc -Isrc/platform $(PLATFORM_DEFINE)
+CFLAGS = -Wall -Iinclude	-Isrc -Isrc/platform $(PLATFORM_DEFINE)
 LDFLAGS += -lm
 
 # stb_image DIR 설정

@@ -12,7 +12,7 @@
 
 
 int main(void) {
-    liquid_init(800, 600, "Canvas test");
+    liquid_init(1920, 1080, "Canvas test");
     
 
     bool isRunning = true;
